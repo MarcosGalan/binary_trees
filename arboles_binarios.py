@@ -311,6 +311,4 @@ def insert_predeterminado():
 
 insert_predeterminado()
 
-list_override_inserter(reordered_list(list(post_order(pointer,tree).values())))
 
-tree_printer(pointer, tree, base)
