@@ -20,20 +20,6 @@ Attributes:
 
 """
 
-#  Copyright (C) 2023 Marcos Galán López
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-
 import math
 
 # VARIABLES
@@ -134,7 +120,7 @@ def is_complete(pos, lst):
     return False if pos is None or (lst[pos]['left_child'] is None and lst[pos]['right_child'] is None) else True
 
 
-def pre_order(pos, lst, pos_cache):
+def pre_order(pos, lst, pos_cache={}):
     if pos is None:
         return pos_cache
 
@@ -145,7 +131,7 @@ def pre_order(pos, lst, pos_cache):
     return pre_order(node['right_child'], lst, temp_cache)
 
 
-def post_order(pos, lst, pos_cache):
+def post_order(pos, lst, pos_cache={}):
     if pos is None:
         return pos_cache
 
@@ -157,7 +143,7 @@ def post_order(pos, lst, pos_cache):
     return cached
 
 
-def in_order(pos, lst, pos_cache):
+def in_order(pos, lst, pos_cache={}):
     if pos is None:
         return pos_cache
 
@@ -168,7 +154,7 @@ def in_order(pos, lst, pos_cache):
     return in_order(node['right_child'], lst, temp_cache)
 
 
-def level_order(pos, lst, pos_cache):
+def level_order(pos, lst, pos_cache={}):
     total_height = height(pos, tree)
 
     for i in range(1, total_height + 1):
@@ -177,7 +163,9 @@ def level_order(pos, lst, pos_cache):
     return pos_cache
 
 
-def return_level(level, pos, root, lst, level_cache):
+def return_level(level, pos, root, lst, level_cache={}):
+    if level_cache is None:
+        level_cache = {}
     if pos is None:
         return level_cache
 
@@ -190,8 +178,26 @@ def return_level(level, pos, root, lst, level_cache):
     return return_level(level, node['right_child'], root, lst, temp_cache)
 
 
-def node_level(value, start, lst):
-    return height(start, lst) - height(value, lst) + 1
+def node_level(value, pos, lst, counter=1):
+    if pos is None:
+        return None
+
+    node = lst[pos]
+    value_node = lst[value]
+
+    if value_node['value'] == node['value']:
+        return counter
+
+    if value_node['value'] > node['value']:
+        if node['right_child'] is None:
+            return None
+        return node_level(value, node['right_child'], lst, counter + 1)
+
+    if value_node['value'] < node['value']:
+        if node['left_child'] is None:
+            return None
+
+        return node_level(value, node['left_child'], lst, counter + 1)
 
 
 def height(pos, lst):
@@ -247,6 +253,44 @@ def list_override_inserter(lst):
         insert_node(i, pointer, tree, cache)
 
 
+def level_printer(level, pos, lst, base):
+    nivel = return_level(level, pos, pos, lst)
+    lista_lineas = ([], [], [], [], [], [], [], [], [])
+    base_len = 24 * len(base)
+
+    margin = (((base_len - (24 * len(nivel))) / len(nivel)) / 2)
+
+    for num in nivel.values():
+        lista_lineas[0].append((f'{" ":^{margin}}' + f'                        ' + f'{" ":^{margin}}'))
+        lista_lineas[1].append((f'{" ":^{margin}}' + f'                        ' + f'{" ":^{margin}}'))
+        lista_lineas[2].append((f'{" ":^{margin}}' + f'         ******         ' + f'{" ":^{margin}}'))
+        lista_lineas[3].append((f'{" ":^{margin}}' + f'       *        *       ' + f'{" ":^{margin}}'))
+        lista_lineas[4].append((f'{" ":^{margin}}' + f'     *            *     ' + f'{" ":^{margin}}'))
+        lista_lineas[5].append((f'{" ":^{margin}}' + f'     *{num:^12}*     ' + f'{" ":^{margin}}'))
+        lista_lineas[6].append((f'{" ":^{margin}}' + f'     *            *     ' + f'{" ":^{margin}}'))
+        lista_lineas[7].append((f'{" ":^{margin}}' + f'       *        *       ' + f'{" ":^{margin}}'))
+        lista_lineas[8].append((f'{" ":^{margin}}' + f'         ******         ' + f'{" ":^{margin}}'))
+
+    for linea in lista_lineas:
+
+        for nodo_texto in linea:
+            print(nodo_texto, end='')
+        print('')
+
+    nivel.clear()
+
+
+def tree_printer(pos, lst, base):
+
+    if is_full(pointer,lst):
+        tree_height = height(pos, lst)
+
+        for i in range(tree_height):
+            level_printer(i + 1, pointer, tree, base)
+    else:
+        print('Para imprimir el arbol debe estar lleno')
+
+
 def insert_predeterminado():
     insert_node(30, pointer, tree, cache)
     insert_node(50, pointer, tree, cache)
@@ -263,3 +307,10 @@ def insert_predeterminado():
     insert_node(33, pointer, tree, cache)
     insert_node(40, pointer, tree, cache)
     insert_node(55, pointer, tree, cache)
+
+
+insert_predeterminado()
+
+list_override_inserter(reordered_list(list(post_order(pointer,tree).values())))
+
+tree_printer(pointer, tree, base)
